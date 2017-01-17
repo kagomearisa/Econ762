@@ -1,0 +1,81 @@
+---
+
+title: " Econ 762 Assignment 1"
+author: "Yuyan Wei 400071843"
+date: "January 16, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Question 1
+```{r}
+par(mfrow=c(1,3))
+set.seed(42)
+acf(ts(rnorm(50)))
+acf(ts(rnorm(100)))
+acf(ts(rnorm(500)))
+
+```
+
+a. Explain the differences among the ACF plots. Does each one indicate that the data are white noise? Why or why not?
+
+The critical intervals of the three time series are different, with the length of T getting bigger, the critical intervals get smaller. Also the autocorrelations are differernt. All the three plots indicate that the data are white noise, because the plots show the figures of white noice: rho(0)=1,rho(1,2,....,lag.max) are close to 0.
+
+
+b. Why do the critical values (dashed blue lines) differ? Compute the values of each of the critical values appearing in each ACF plot.
+
+The different of critical values are caused by the difference of length of time series.
+```{r}
+##comupute the critical value for T = 50
+crit1<-1.96/sqrt(50)
+-crit1 
+crit1
+##comupute the critical value for T = 100
+crit2<-1.96/sqrt(100)
+-crit2
+crit2
+##comupute the critical value for T = 500
+crit3<-1.96/sqrt(500)
+-crit3
+crit3
+
+```
+
+c.Why are the autocorrelations different in each figure if indeed they each refer to a white noise process?
+
+According to  sample ACF, for stationary process,the autocorrelation (rho_k_hat)is decided by each y variable which is randomly realizd and the y at mean,thus the autocorrelations differ in each figure becasue of randomlization of data simulation. But, if the sample size is large enough, the autocorrelation will decay rapidly and approach zero.
+
+
+Question 2
+
+a.Using the R functions plot and acf, first plot the daily closing prices for IBM stock, and then plot the ACF.
+```{r}
+##load the IBM data
+library("fma")
+data(ibmclose)
+#plot the daily closing prices for IBM stock
+plot(ibmclose)
+##plot the ACF
+acf(ibmclose)
+```
+
+b.Explain clearly how these plots reveal that the series is nonstationary and therefore should be differenced.
+
+(1) From the the first plot, it can be seen clearly that the unconditional mean, variances of the series vary with the index time, which means the series is not time invariate.Also the daily price have a trend of increasing first and then decreasing, which is followed by another round.
+
+(2) From the ACF pplot, it can be seen that rho_0 equals 1, and then decay very slowly and all exceed the critical value dashes (which are very close to zero), which clearly shows the characteristics of nonstationary.
+
+
+c. Using the R function ndiffs(), how many differences are required in order to render the series stationary?
+
+Only first time difference is required in order to render the series stationary.
+```{r}
+##test for the number of times needs to be differenced
+ndiffs(ibmclose)
+```
