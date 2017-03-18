@@ -1,0 +1,397 @@
+---
+title: "ECON 762 Assignment 4"
+author: "Yuyan Wei"
+date: "March 18, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+
+a. Robustness:
+
+Robustness can be thought of as a collection of three attributes:
+(1) Resistance: insensitive to the presence of a small number of bad data values;
+(2) Smoothness: the technique should respond only gradually to the injection of a small number of gross errors, to perturbations in data and to small changes in the model;
+(3) Breadth: applicability to a wide variety of situations.
+
+
+b. Masking:
+
+When there exist outliers and one is using nonrobust methods, their effects may interact in such a way that some or all of them remain unnoticed. We call this effect masking.
+
+
+c. Sensitivity Curve and Influence Function
+
+The sensitivity curve of an estimator $\hat\theta$, denoted by $SC(x_0)$, is the difference between $\hat\theta(x_1,\dots,x_n,x_0)$ and $\hat\theta(x_1,\dots,x_n)$ as a function of the location $x_0$ of the outlier. Interest of sensitivity curve often lies in whether or not the sensitivity curve is bounded.
+
+The Influence function of an estimator is an asymptotic version of its (standardized) sensitivity curve. It is an approximation to the behavior of the estimator as $n\to\infty$ when the sample contains a small fraction $\epsilon$ of identical outliers. It is defined as 
+\begin{align*}
+  \operatorname{IF}_{\hat\theta}(x_0,F)&=\lim_{\epsilon\downarrow
+    0}\frac{\hat\theta_\infty\left((1-\epsilon)F+\epsilon\delta_{x_0}\right)-\hat\theta_\infty(F)}{\epsilon}\\
+  &=\frac{\partial}{\partial\epsilon}\hat\theta_\infty\left((1-\epsilon)F+\epsilon\delta_{x_0}\right)|_{\epsilon\downarrow0},
+\end{align*}
+
+where $\delta_{x_0}$ is the point-mass at $x_0$ and "$\downarrow$" stands for limit from the right. The quantity $\hat\theta_\infty\left((1-\epsilon)F+\epsilon\delta_{x_0}\right)$ is the asymptotic value of the estimate when the underlying distribution is $F$ and a fraction $\epsilon$ of outliers is equal to $x_0$.
+
+
+d. Finite-Sample Breakdown Point
+
+Take any sample of $n$ data points, $X$, and let $\hat\theta$ denote an estimator of some unknown parameter (vector) $\theta$, so that $\hat\theta=f(X)$. Consider all possible corrupted samples $X'$ that are obtained by replacing any $m$ of the original $n$ data points by arbitrary values (e.g.say where $X'$ includes $\pm\infty$, which allows for extreme outliers). Let us denote by bias$(m;f(X'),X)$, the maximum bias that can be caused by such a contamination: 
+\begin{equation*}
+  \hbox{bias}(m;f(X'),X)=\sup_{X'}||f(X') - f(X)||
+\end{equation*}
+where the supremum is over all possible $X'$. If bias$(m;f(X'),X)$ is infinite, this means that $m$ outliers can have an arbitrarily large effect on $\hat\theta$, which may be expressed by saying that the estimator breaks down. Therefore, the finite-sample breakdown point of the estimator $f(X)$ on the sample $X$ is defined as
+\begin{equation*}
+  \varepsilon_m^*(f(X'),X)=\min\left\{\frac{m}{n};\hbox{bias}(m;f(X'),X)
+    \hbox{ is infinite}\right\}
+\end{equation*}
+
+
+e. Huber (1964) M-Estimator
+
+$M$-estimators denote maximum likelihood-type estimators (Huber (2003)) and constitute a wide class of approaches. In particular, an $M$-estimator is the solution to the zero of an estimating function where the estimating function is typically the derivative of another statistical function such as a likelihood-function. By suitable choice of the estimating function (which is conventionally denoted by $\psi()$ where $\psi$ is the derivative of a function typically denoted by $\rho()$ we can obtain estimators with desirable properties under ideal conditions. Huber (1964) proposed replacing the inefficient absolute value operator with a function of the form 
+\begin{equation}
+  \label{huber rho_c}
+  \rho_c(u)=\left\{\begin{array}{ll}
+      u^2&\text{ if } |u|\le c\\
+      2c|u|-c^2&\text{ if } |u|> c
+    \end{array}
+  \right..
+\end{equation}
+
+Its derivative function is given by 
+\begin{equation}
+  \label{huber psi_c}
+  \psi_c(u)=\left\{\begin{array}{ll}
+      2u&\text{ if } |u|\le c\\
+      2c\,\operatorname{sgn}(u)&\text{ if } |u|> c
+    \end{array}
+  \right..
+\end{equation}
+Note that when $c=0$
+we define $\rho_c(u)=|u|$ and $\psi_c(u)=\operatorname{sgn}(u)$ is the sign function.
+
+
+
+# Question 2
+
+## a. 
+The interquartile range (IQR) has a breakdown point of 25%. Because equal to the difference between 75th and 25th percentiles ($IQR = Q3 - Q1$), as the 25% trimmed range. Outliers are observations that fall below Q1 ??? 1.5 IQR (the first 25%) or above Q3 + 1.5 IQR (the last 25%), thus gives us a finite breakdown point of 25%.
+
+
+## b.
+The interquartile range (IQR) is a measure of variability, based on dividing a data set into quartiles, which equals to the difference between 75th and 25th percentiles, or between upper and lower quartiles, $IQR = Q3 - Q1$.
+The normalized median absolute deviation about the median is deined as $MAD_n = Med_i |x_i ??? Med(x_i)|/0.675$ where the constant $0.675$ is chosen so that the estimator has expectation ?? at the normal distribution.
+
+For the MADn, the condition of 50% breakdown point cuts away most estimators that are intuitively appealing otherwise, such as the interquartile range (which has 25% breakdown). One might feel that a 50% breakdown point is not really needed, but several simulation studies (e.g., Andrews et al 1972) have shown that the MAD is a much better auxiliary scale estimator than the interquartile range precisely because of its 50% breakdown point. 
+
+For a symmetric distribution (where the median equals the midhinge, the average of the first and third quartiles), half the IQR equals the median absolute deviation (MADn).
+
+
+## c.
+Rousseeuw and Croux (1993) propose 
+\begin{equation*}
+  Q_n=d\{|x_i-x_j|;i<j\}_{(k)},
+\end{equation*}
+where $d$ is a constant factor, $k={h \choose 2}\simeq {n\choose 2}/4$ where $h=[n/2]+1$ is roughly half the number of observations, and the subscript $(k)$ denotes the $k$th order statistic.
+$\text{MAD}_n$ and $Q_n$ are both robust scale estimator, while $Q_n$ is more efficient than $\text{MAD}_n$. For example, for data drawn from the normal distribution, the $\text{MAD}_n$ is 37% as efficient as the sample standard deviation, while the Rousseeuw-Croux estimator $Q_n$ is 88% as efficient as the sample standard deviation. 
+
+The diference between $Q_n$ and $\text{MAD}_n$ given above is that $\text{MAD}_n$ is based on deviations about the median, while $Q_n$ is based on distances similar to those used to compute the interquartile range. $Q_n$ has a number of attractive properties: a simple and explicit formula, a deinition that is equally suitable for asymmetric distributions, a 50% breakdown point, and an eiciency at Gaussian distributions that is high (82%).
+
+
+# Question 3
+## a.
+```{r}
+## Set the seed for the random number generator
+set.seed(42)
+## Set the number of observations to 100
+n <- 100
+## Generate a draw for the regression x from the uniform
+x <- runif(n)
+## Set the intercept and slope to 1 and 2, respectively
+beta1 <- 1
+beta2 <- 2
+## Generate a draw for the residuals from the N(0,.01) distribution
+epsilon <- rnorm(n,sd=.1)
+## Generate y from a classical linear regression model
+y <- beta1 + beta2*x + epsilon
+## Use the lm() command to regress y on x using only
+## the subset of observations 1,...,99
+model <- lm(y~x,subset=1:99)
+## This will provide a summary of the model
+summary(model)
+beta2hat<-coef(model)[2]
+##create a vector of points for epsilon_0
+n.ep.0<-100
+##create a vector for the sensitivity curve for beta2
+sc.beta2<-numeric(100)
+## generate a vecor of points for epsilon_0 of length n.ep.0
+ep.0<-seq(-1000,1000,length=n.ep.0)
+for (i in 1:n.ep.0){
+  epsilon[100]<-ep.0[i]
+  ep.augmented<-epsilon
+y.augmented<-beta1+beta2*x+ep.augmented
+model2<-lm(y.augmented~x)
+beta2hat.augmented<-coef(model2)[2]
+sc.beta2[i]<-beta2hat.augmented-beta2hat
+}
+##plot sensitive curve for beta2
+plot(ep.0,sc.beta2,
+     ylab="bias in beta2()",
+     xlab="epsilon_0$",
+     type="l")
+```
+## b. 
+It is clear that the sensitivity curve is not bounded, with the epsilon getting bigger, the bias is getting larger as well. This function tells us that the efficiency of OLS estimator is heavily influened by the noice (error term). With big unceritainty (or extreme outliers), the estimators can be largely biased. Therefore, we estimating using OLS, we should pay close attention to potential outliers.
+
+
+# Question 4
+
+
+```{r}
+## a. 
+##generate  a sample drawn from an N(0,1) distribution of size n=100
+require(robustbase)
+set.seed(42)
+n<-100
+x<rnorm(n)
+##compute the mean, sd, median, interquartile range, MAD_n, and Qn
+mean.sample<-mean(x)
+sd.sample<-sd(x)
+median.sample<-median(x)
+mad.sample<-mad(x)
+ir.sample<-IQR(x)
+Qn.sample<-Qn(x)
+summary(mean.sample, sd.sample, median,sample, mad.sample, ir.sample, Qn,sample)
+
+## b.
+##set the length of the x0vector
+n.x0<-100
+## generate a vector of points for x0 of length n.x0
+x0<-seq(-10,10,length=n.x0)
+##create a vector for the SC curve for the sample mean and sample sd
+sc.mean<-numeric(n.x0)
+sc.sd<-numeric(n.x0)
+sc.mad<-numeric(n.x0)
+sc.ir<-numeric(n.x0)
+sc.Qn<-numeric(n.x0)
+##augment the original sample x for x0, each time compute the bias
+##for the sample mean and sample sd
+for(i in 1:n.x0){
+  x.augmented<-c(x0[i],x)
+  sc.mean[i]<-mean(x.augmented)-mean.sample
+  sc.sd[i]<-sd(x.augmented)-sd.sample
+  sc.mad[i]<-mad(x.augmented)-mad.sample
+  sc.ir[i]<-IQR(x.augmented)-ir.sample
+  sc.Qn[i]<-Qn(x.augmented)-Qn.sample
+}
+##sensitiviety curve for the sample mean
+plot(x0,sc.mean,
+     ylab="Bias in mean()",
+     xlab="$x_0$",
+     type="l")
+##sensitiviety curve for the sample sd
+plot(x0,sc.sd,
+     ylab="Bias in sd()",
+     xlab="$x_0$",
+     type="l")
+##sensitiviety curve for the sample interquartile range
+plot(x0,sc.mad,
+     ylab="Bias in mad()",
+     xlab="$x_0$",
+     type="l")
+##sensitiviety curve for the sample MADn
+plot(x0,sc.ir,
+     ylab="Bias in ir()",
+     xlab="$x_0$",
+     type="l")
+##sensitiviety curve for the sample Qn
+plot(x0,sc.Qn,
+     ylab="Bias in Qn()",
+     xlab="$x_0$",
+     type="l")
+```
+It can be seen from the plotted sensitive curve, for mean and standard deviation estimators, the the influence of a single outlier appear to be bounded.
+
+
+## c.
+```{r}
+set.seed(42)
+##generate 20 observations from N(0,1) and sort them in ascending order
+obs.sample<-sort(rnorm(20))  
+x0<-1000
+M<-10
+require(robustbase)
+mean.vec<-numeric(length=M)
+sd.vec<-numeric(length=M)
+median.vec<-numeric(length=M)
+mad.vec<-numeric(length=M)
+ir.vec<-numeric(length=M)
+Qn.vec<-numeric(length=M)
+##Augment the original dataset 10 times and estimate the 5 estimators, computes the estimation bias
+for (i in 1:M){
+  obs.sample.augmented<-obs.sample
+  obs.sample.augmented[1:i]<-x0
+  mean.vec[i]<-mean(obs.sample.augmented)
+  sd.vec[i]<-sd(obs.sample.augmented)
+  median.vec[i]<-median(obs.sample.augmented)
+  mad.vec[i]<-mad(obs.sample.augmented)
+  ir.vec[i]<-IQR(obs.sample.augmented)
+  Qn.vec[i]<-Qn(obs.sample.augmented)
+}
+##create a table
+summary.estimators<-matrix(nrow=10,ncol=6)
+summary.estimators[,1]<-mean.vec
+summary.estimators[,2]=sd.vec
+summary.estimators[,3]=median.vec
+summary.estimators[,4]=ir.vec
+summary.estimators[,5]=mad.vec
+summary.estimators[,6]=Qn.vec
+rownames(summary.estimators)=c("1","2","3","4","5","6","7","8","9","10")
+colnames(summary.estimators)=c("mean","SD","median","MAD","IQR","Qn")
+summary.estimator<-round(summary.estimators,digits=4)
+as.table(summary.estimators)
+```
+
+
+## d.
+```{r}
+traditionm<-vector("list",5)
+robustm<-vector("list",5)
+for (m in 1:5){
+  obs.sample.augmented1<-obs.sample
+  obs.sample.augmented1[1:m]<-x0 
+  t<-(obs.sample.augmented1-mean(obs.sample.augmented1))/sd(obs.sample.augmented1) #Apply the traditional three-sigma eidit rule
+  traditionm[[m]]<-subset(obs.sample.augmented1,abs(t)>3.0)
+  tprime<-(obs.sample.augmented1-median(obs.sample.augmented1))/mad(obs.sample.augmented1) #Apply robust three-sigma edit rule
+  robustm[[m]]<-subset(obs.sample.augmented1,abs(tprime)>3.0)
+}
+traditionm
+robustm 
+```
+It can be seen that in the non-robust version, all the outlier observations are masked when m equals 2, 3, 4, and 5. Instead, in the robust version, none of the outliers are masked. Therefore, it can be concluded that the traditional measures suffer from some drawbacks that in relatively small samples (such as n=20) the rule is ineffective; and when several outliers appear, their effects interact with each other that makes some or all of them remain unnoticed. However, on the other hand, the robust version solve these problems.
+
+# Question 5
+
+## (a). Define the box-and-whisker plot
+Box-and-whisker plot is a non-parametric approach to delineate sets of numerical data through their quartiles in a graphic manner. It is uniform in its use of the box: the two ends of the box are the 1st and 3rd quartiles and the band inside the box is the median. It also has lines extending from the boxes through the two ends indicating variability outside the upper and lower quartiles.  Outliers may be plotted as individual points.The spacing between the different parts of the box indicate the degree of dispersion (spread) and skewness in the data, and which present outliers. In addition to the points themselves, they also allow for visually estimating various L-estimators such as the mid-range and interquartile range. 
+
+## (b). Advantages and disadvantages in terms of outlier detection
+*Advantages:*
+First, box-and-whisker plot is a  visualized tool and therofre, can be very intuitive.
+Second, because it is a non-parametric method, it does not rely on any underlying assumption of distribution. Thus, it can be used in a broader manner besides symmetric data.
+Third, becasue it use quantiles, which render it insensitive to data with extreme values compared to methods based on the sample mean and standard variance.
+Forth, it takes up less space and is therefore particularly useful for comparing distributions between several groups or sets of data.
+
+*Disadvantages:*
+First, it can only be applied to univariate case.
+Second,it also suffers from drawbacks in relatively small sample, which can be observed directly from the 5th plot of question c below. 
+Third, it cannot tell the number of outlies if these outliers have the same value as the ploted points coincide with each other. 
+
+## (c).
+```{r}
+graph<-vector("list",5)
+plot.range<-par(mfrow=c(1,5))
+for (m in 1:5){
+  obs.box.augmented<-obs.sample 
+  obs.box.augmented[1:m]<-x0 
+  boxplot(obs.box.augmented)
+}
+par(plot.range)
+```
+It can be seen that box-and-whisker plot can detect outliers effective when the number is small (m=1 to 4) without affect other good data, but it cannot tell the number of outliers as they all conincide at the same point. In addition, this method also suffers from small sample problem when m equals 5 just like the traditional three-sigma method does, which outliers are masked. 
+
+# Question 6
+
+## (a).
+
+Since we know that,
+\begin{align*}
+  \hat\epsilon&=Y-X\hat\beta\\
+  &=(I-X(X'X)^{-1}X')Y\\
+  &=(I-H)Y\\
+  &=MY
+\end{align*}
+The $hat matrix H$ gives the fitted value of $Y$, $\hat Y$, from the observed values: $\hat Y = HY$.
+\begin{align*}
+    H'&=(X(X'X)^{-1}X')' = X(X'X)^{-1}X', \text{ and }\\
+    HH&=X(X'X)^{-1}X'X(X'X)^{-1}X'=X(X'X)^{-1}X'
+\end{align*}
+Then we can have the trace of $H$ is $tr(X(X'X)^{-1}X')=tr((X'X)^{-1}X'X)=tr(I_k)=k$. Since the trace of a matrix is the sum of diagonal elements, then $tr(H)=\sum_{i=1}^n h_{ii}=k$, thus $\bar h_{ii}=k/n$, i.e. $\bar h_{tt}=k/n$.
+
+We denote the element $h_{ij}$ as the direct effect exerted by the $j$th observation on $\hat y$. For any idempotent matrix, the diagonal element $h_{ii}$ can be written as the sum of squares of the $i$th row (column). Therefore, 
+\begin{equation}
+  \label{idempotent sum}
+  h_{ii}=\sum_{j=1}^n h_{ij}^2=h_{ii}^2+\sum_{j=1,j\ne i}^n h_{ij}^2.
+\end{equation}
+Since $h_{ij}^2\ge0$, it is clear that $h_{ii}=\sum_{j=1}^n h_{ij}^2\ge0$. We devide equation above by $h_{ii}$, yields
+\begin{equation*}
+  1=h_{ii}+\frac{\sum_{j=1,j\ne i}^n h_{ij}^2}{h_{ii}},
+\end{equation*}
+hence
+\begin{equation*}
+  h_{ii}=1-\frac{\sum_{j=1,j\ne i}^n h_{ij}^2}{h_{ii}}\le 1.
+\end{equation*}
+Therefore, we come out with $0 \le h_{tt} \le 1$.
+
+## (b).
+
+Let A denote a square $p\times p$ matrix, and let $U$ and $V$ denote matrices of dimension $p\times m$. Then it can be shown that
+\begin{equation*}
+  (A-UV')^{-1}=A^{-1}+A^{-1}U\left(I_m-V'A^{-1}U\right)^{-1}V'A^{-1}.
+\end{equation*}
+As we already known that, $X'X=X_{(-t)}'X_{(-t)} + x_tx_t'$. Thus, $ X_{(-t)}'X_{(-t)} =(X'X-x_tx_t')$.
+Letting $A=X'X$, $U=V=x_t$, and noting that $m=1$ and that $V'A^{-1}U=x_t'(X'X)^{-1}x_t=h_{tt}$, we have
+\begin{equation*}
+  (X_{(-t)}'X_{(-t)})^{-1} = \frac{(X'X)^{-1}+(X'X)^{-1}x_tx_t'(X'X)^{-1}}{(1-h_{tt})}
+\end{equation*}
+
+
+## (c).
+In a same manner as showed in part (b), $X'Y=X_{(-t)}'Y_{(-t)} + x_t'y_t$, thus $ X_{(-t)}'Y_{(-t)} =X'Y-x_t'y_t)$
+Letting $A=X'Y$, $U=V=x_t$, and noting that $m=1$ and that $V'A^{-1}U=x_t'(X'Y)^{-1}x_t=h_{tt}$, we have
+\begin{equation*}
+  (X_{(-t)}'Y_{(-t)})^{-1} = \frac{(X'Y)^{-1}+(X'Y)^{-1}x_t'y_t(X'Y)^{-1}}{(1-h_{tt})}
+\end{equation*}
+
+## (d).
+
+\begin{align*}
+    \hat\beta_{(-t)}&=(X_{(-t)}'X_{(-t)})^{-1}X_{(-t)}'Y_{(-t)}\\
+    &=\left[(X'X)^{-1}+\frac{(X'X)^{-1}x_tx_t'(X'X)^{-1}}{(1-h_{tt})}\right]
+    \left[X'Y-x_t'y_t \right]\\
+    &=(X'X)^{-1}X'Y +\frac{(X'X)^{-1}x_tx_t'(X'X)^{-1}}{(1-h_{tt})}X'Y
+    -(X'X)^{-1}x_ty_t\\
+    &\quad-\frac{(X'X)^{-1}x_tx_t'(X'X)^{-1}}{(1-h_{tt})}x_ty_t\\
+    &=\hat\beta +\frac{(X'X)^{-1}x_tx_t'\hat\beta}{(1-h_{tt})}
+    -\frac{(1-h_{tt})(X'X)^{-1}x_ty_t}{(1-h_{tt})}
+    -\frac{(X'X)^{-1}x_th_{tt}y_t}{(1-h_{tt})}\\
+    &=\hat\beta
+    +\frac{(X'X)^{-1}x_t}{(1-h_{tt})}(\hat y_t-(1-h_{tt})y_t-h_{tt}y_t)\\
+    &=\hat\beta
+    +\frac{(X'X)^{-1}x_t}{(1-h_{tt})}(\hat y_t-y_t)\\
+    &=\hat\beta
+    -\frac{(X'X)^{-1}x_t\hat\epsilon_t}{(1-h_{tt})}
+\end{align*}
+Thus we have
+\begin{equation*}
+\hat\beta-\hat\beta_{(-t)}=\frac{(X'X)^{-1}x_t\hat\epsilon_t}{(1-h_{tt})}
+\end{equation*}
+
+
+
+
+
+
+
+
+
+
+
+
+
