@@ -1,0 +1,404 @@
+---
+title: "ECON 762 Assignment 3"
+author: "Yuyan Wei 400071843"
+date: "March 1, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Robust Inference Problem Set**
+
+##Question 1
+
+
+a. Jackknife: It is a nonparametric technique for estimating the standard error of a statistic. The procedure consists of taking repeated subsamples of the original sample of n independent observations by omitting a single observation at a time. Thus, each subsample consists of n???1 observations formed by deleting a different observation from the sample. The jackknife estimate and its standard error are then calculated from these truncated subsamples.
+
+For example,  suppose that $\theta$ is the parameter of interest and let$\hat\theta_{(1)}$,$\hat\theta_{(2)}$,...,$\hat\theta_{(n)}$ be n estimates of $\theta$ based on the $n$ subsamples each of size $n-1$. Then the jackknife estimate of $\theta$  is given by
+\begin{equation*}
+\hat\theta_J=\frac{\sum_{i=1}^n\hat\theta_{(i)}}{n},
+\end{equation*}
+while the jackknife estimate of the standard error of $\hat\theta_J$ is given by
+\begin{equation*}
+  \hat\sigma_{\hat\theta_J}=\sqrt{
+    \frac{n-1}{n}\sum_{i=1}^n(\hat\theta_{(i)}-\hat\theta_J)^2
+  }.
+\end{equation*}
+
+
+b. Bootstrap: Bootstrap refers to repeatedly drawing samples with replacement from the sample at hand (i.e., treat the sample as if it were the population)(Efron 1979).As the true population is unknown, the true error in a sample statistic against its population value is unknowable. In bootstrap, the 'population' is in fact the sample, which is known; thus the quality of inference of the 'true' sample from resampled data is measurable.
+
+Using Efron's procedure, we can obtain an alternative to the asymptotic standard error of the sample mean by computing the standard deviation of the $B$ bootstrap means, each based on a bootstrap resample of size $n$ drawn from ${X_{1},X_{2},...,X_{n}}$.Let these $B$ bootstrap means be denoted $\bar X^{\ast}_1$,$\bar X^{\ast}_2$,...,$\bar X^{\ast}_B$,and let the average of these $B$ bootstrap means be denoted $\hat\mu_{\bar X^{\ast}}$
+. The bootstrap standard error of the sample mean $\bar X$, which we denote as $\tilde\sigma_{\bar X}$, is given by:
+\begin{equation*}
+\tilde\sigma_{\bar X}=\sqrt{\frac{1}{B-1}\sum_{i=1}^B(\bar X^{\ast}_i-\hat\mu_{\bar X^{\ast}})^2}.
+\end{equation*}
+
+
+
+c. Empirical cumulative distribution function $F(t)$ is defined as 
+\begin{equation*}
+F(t)=p(T\le t).
+\end{equation*}
+ suppose that we have obtained $B$ bootstrap statistics $\hat\theta^{\ast}_{1}$,$\hat\theta^{\ast}_{2}$,...,$\hat\theta^{\ast}_{B}$. We can construct their empirical distribution function via 
+ \begin{equation*}
+\hat F(t)=\frac{\# \hat\theta^{\ast}\le t}{B}.
+\end{equation*}.
+
+
+d. Nonparametric confidence interval compute confidence interval based on nonparametric approaches, which don't make any parametric assumption, such as bootstrap and jackknife. For example, consider a simple approach towards creating approximate confidence intervals to any real-valued parameter  $\theta=\theta(F)$  based on the bootstrap distribution of $\hat\theta=\hat\theta(\hat F)$. $F(t)$ is defined as $F(t)=p(T\le t)$. Suppose that we have obtained $B$ bootstrap statistics  $\hat\theta_1^*,...,\hat\theta_B^*$, the empirical cumulative distribution function can be consructed as 
+\begin{equation*}
+\hat F(t)=\frac{\# \hat\theta^{\ast}\le t}{B}.
+\end{equation*}.
+
+For a given $0\le\alpha\le 1$, define $\hat\theta_\text{low}=\hat F^{-1}(\alpha/2),\quad \hat\theta_\text{up}=\hat F^{-1}(1-\alpha/2)$, we obtain the confidence interval $[\hat\theta_\text{low},\hat\theta_\text{up}]$.
+
+
+e. Nonparametric P-value: P-value of a test is defined as the probability of observing at least that large a value if the null is true, i.e., assume a test statistic $\theta$
+\begin{align*}
+  P &= P_{H_0}\{\theta> \hat\theta\}\\
+&= 1-P_{H_0}\{\theta\le \hat\theta\}\\
+&= 1-F_{H_0}(\hat\theta),
+\end{align*}
+where $F_{H_0}(\hat\theta)$ is the CDF of $\hat\theta$  under the null. The smaller the value of $P$ , the stronger the evidence against $H_0$. We would reject the null at level  $\alpha$ if $P<\alpha$.
+
+A nonparametric P-value is constructed under nonparametric approach, e.g. the Bootstrap. A bootstrap P-value based on $B$ simulated test statistics, for a one-tail test that rejects in the upper tail is 
+\begin{equation*}
+P_B^{\ast} = 1 - \hat F(\hat\theta)= 1- \frac{1}{B} \sum_{j=1}^B
+I(\hat\theta^{\ast}_j \le \hat\theta) = \frac{1}{B} \sum_{j=1}^B
+I(\hat\theta^{\ast}_j > \hat\theta) = \frac{N}{B},
+\end{equation*}
+
+
+
+
+
+
+
+
+
+##Question 2
+```{r}
+    set.seed(42)
+    n <- 25
+    x <- rnorm(n,mean=0.0,sd=1.0)
+    ## The residual is heteroskedastic by construction
+    e <- x^2*rnorm(n,mean=0.0,sd=1.0)
+    ## x is irrelevant in this model
+    y <- 1 + e
+    ```
+   
+    
+*a.*
+```{r}
+model.ols<-lm(y~1+x) 
+coef(summary(model.ols))[2,] #estimate beta2 and SE
+#(2)compute SE of beta2 by using matrix 
+se.matrix <- sqrt(diag(vcov(model.ols)))
+se.matrix
+
+```
+
+It can be seen from the result above, OLS model $\beta_{2}=-0.2584$ and its SE is 0.3158. The result from using matrix command shows the SE of $\beta_{2}$ is still 0.3157518. So the two SE estimates are identical.
+
+
+*b.*
+```{r}
+require(car)
+white.heter<-hccm(model.ols,type="hc0") #white's heter consistent cov-matrix estimator
+white.heter 
+sqrt(white.heter[2,2]) #white estimator of SE of beta2
+```
+It can be seen that White's estimator of the standard error of $\hat\beta_2$ is 0.5371, which is much larger than the results from (a) above.
+
+
+*c.*
+
+```{r}
+#Bootstrap estimates of standard error of beta2
+require(boot)
+sample.data=as.data.frame(matrix(c(x,y),nrow=25,ncol=2)) #construct a matrix of (x,y) for pair samples
+set.seed(42)
+boot.rx<-function(xdata,i) {coef(lm(y~x, subset=i,data=xdata))} #sample pairwise from rows of (y, X)
+boot.out.rx<-boot(sample.data,boot.rx,999) #resample 999 times
+boot.b2<-boot.out.rx$t[,2]
+mean(boot.b2)  #bootstrap esimate of beta2
+sqrt(cov(boot.out.rx$t)[2,2])  #bootstrap SE estimate of beta2
+```
+
+It can be seen that bootstrap estimate of $\beta_2$ is -0.2444, which is similar to the results above. Standard error is 0.5372, which is quite similar to the result given by white estimator (0.5371) and also larger than the result given by OLS estimate.
+
+
+```{r}
+#Jackknife estimates of standard error of beta2
+require(bootstrap)
+sample.data<-as.data.frame(matrix(c(x,y),nrow=25,ncol=2))
+jack.b2<-numeric(25) #create a vector to contain the 25 estimates of beta2
+for (i in 1:25) {
+  jack.model=lm(y[-i]~x[-i])
+  jack.b2[i]=jack.model$coefficients[2]
+}
+mean(jack.b2)
+sqrt((25-1)/25*sum((jack.b2-mean(jack.b2))^2))
+```
+
+It can be seen that Jackknife estimate of $\beta_2$ is -0.2572, which is also similar to the results above, standar error, on the other hand, is 0.6594, which is pretty larger than the results above. Thus, results from jackkinfe is less accurate than those from bootstrap.
+
+
+*d.* conduct a one-sided t-test of significance $H_0:\beta_2=0$ vs $H_1:\beta_2>0$
+```{r}
+#generate 199 t-statistics and create a data frame for all variables
+z<-data.frame(1,x,y) 
+#Bootstrap under the null with a pairwise procedure
+t.stat.boot<-numeric(199) #create a vector contains the generated t-value
+for (b in 1:199) {
+  z.boot<-z[sample(1:25,replace=TRUE),]
+  z.boot[,2]<-z[,2] #impose the second column unchanged to bootstrap z
+  t.stat.boot[b]<-coef(summary(lm(y~1+x,data=z.boot)))[2,"t value"]
+}
+```
+
+##OLS
+```{r}
+#construct the OLS model manually
+X<-as.matrix(cbind(1,x)) 
+b.ols=solve(t(X)%*%X)%*%t(X)%*%y
+resi<-y-b.ols[1]-b.ols[2]*x 
+vcov.model1<-1/(25-2)*as.numeric(t(resi)%*%resi)*solve(t(X)%*%X)
+t.ols<-(b.ols[2]-0)/sqrt(vcov.model1[2,2]) 
+#calculate non-parametric p-value by using jackknife data
+p.value.ols<-sum(t.stat.boot>t.ols)/199 
+p.value.ols
+```
+
+Because $\hat\beta_2$ is negative, we don't need to consider $H_1$ that $\beta_2>0$. Here we only want to illustrate t-statistic and p-value. Because p-value equals $0.7839>0.1$, we fail to reject $H_0$ that $\beta_{2}=0$.
+
+##White
+```{r}
+#Critical values form the ECDF
+t.white<-(b.ols[2]-0)/sqrt(white.heter[2,2]) 
+p.value.white<-sum(t.stat.boot>t.white)/199 
+p.value.white
+```
+
+Because $\hat\beta_2$ is negative, we don't need to consider $H_1$ that $\beta_2>0$. Here we only want to illustrate t-statistic and p-value. Because p-value equals $0.6935>0.1$, we fail to reject $H_0$ that $\beta_{2}=0$.
+
+##Jackknife
+```{r}
+#Critical values form the ECDF
+t.jack<-(mean(jack.b2)-0)/sqrt((25-1)/25*sum((jack.b2-mean(jack.b2))^2))
+p.value.jack<-sum(t.stat.boot>t.jack)/199 
+p.value.jack
+```
+
+Because $\hat\beta_2$ is negative, we don't need to consider $H_1$ that $\beta_2>0$. Here we only want to illustrate t-statistic and p-value. Because p-value equals $0.6332>0.1$, we fail to reject $H_0$ that $\beta_{2}=0$.
+
+##Bootstrap
+```{r}
+#Critical values form the ECDF
+t.boot<-(mean(boot.b2)-0)/sqrt(cov(boot.out.rx$t)[2,2])  
+p.value.boot<-sum(t.stat.boot>t.boot)/199
+p.value.boot
+```
+Because $\hat\beta_2$ is negative, we don't need to consider $H_1$ that $\beta_2>0$. Here we only want to illustrate t-statistic and p-value. Because p-value equals $0.6734>0.1$, we fail to reject $H_0$ that $\beta_{2}=0$.
+
+It can be seen from the four approaches above, all of them lead to the same result that we fail to reject $H_0$ at 10% level.
+
+
+
+
+
+
+
+
+##Question 3
+
+a.
+\begin{align*}
+E[\tilde\sigma^2]-\sigma^2\\
+&=E[\frac{1}{n}\sum_{i=1}^n(x_i-\bar x)^2]-\sigma^2\\
+&=E[\frac{1}{n}\sum_{i=1}^n((x_i-\mu)-(\bar x-\mu))^2]-\sigma^2\\
+&=E[\frac{1}{n}\sum_{i=1}^n(x_i-\mu)^2]-2E[\frac{1}{n}\sum_{i=1}^n(x_i-\mu)(\bar x-\mu)+E[\frac{1}{n}\sum_{i=1}^n(\bar x-\mu)^2]-\sigma^2\\
+&=E[\frac{1}{n}\sum_{i=1}^n(x_i-\mu)^2]-\frac{2(\bar x-\mu)}{n}E[n\bar x-n\mu)+E[\frac{1}{n}\sum_{i=1}^n(\bar x-\mu)^2]-\sigma^2\\
+&=E[\frac{1}{n}\sum_{i=1}^n(x_i-\mu)^2]-\frac{2(\bar x-\mu)}{n}E[n\bar x-n\mu)+E[(\bar x-\mu)^2]-\sigma^2=E[\frac{1}{n}\sum_{i=1}^n(x_i-\mu)^2]-E[(\bar x-\mu)^2]-\sigma^2\\
+&=-E[(\bar x-\mu)^2]=-Var(\bar x)\\
+&=-\frac{\sigma^2}{n}.
+\end{align*}
+
+
+\begin{align*}
+E[\hat\sigma^2]-\sigma^2 
+&= E[\frac{1}{n-1}\sum_{i=1}^n(x_i-\bar x)^2]-\sigma^2=\frac{1}{n-1} E[\frac{1}{n}\sum_{i=1}^n((x_i-\mu)-(\bar x-\mu))^2]-\sigma^2\\
+&=\frac{1}{n-1} E[\frac{1}{n}\sum_{i=1}^n((x_i-\mu)^2-2\frac{1}{n}\sum_{i=1}^n(\bar x-\mu)(x_i-\mu)+\frac{1}{n}\sum_{i=1}^n(\bar x-\mu)^2]-\sigma^2\\
+&=\frac{1}{n-1} [E[\frac{1}{n}\sum_{i=1}^n((x_i-\mu)^2]-nE[(\bar x-\mu)^2]]-\sigma^2\\
+&=\frac{1}{n-1}(n Var(x_i)-n Var(\bar x))-\sigma^2=\frac{n}{n-1}(\sigma^2-\frac{\sigma^2}{n})-\sigma^2\\
+&=0
+\end{align*}
+
+
+
+b.
+Compute Jackknife bias estimates with each draw of size $n=10$:
+
+```{r}
+require(bootstrap)
+M<-1000
+for(i in 1:M) {
+set.seed(42) 
+y<-rnorm(10) #generate a sample of size n=10 from DGP
+var.ML<-function(x) {sum((x-mean(x))/length(x))} #sample variance of ML estimator
+var.OLS<-function(x) {sum(x-mean(x))/(length(x)-1)} #sample variance of OLS estimator 
+jackknife.var.ML<-vector(length=M) #a vector contains jackknife estimators
+jackknife.var.ML[i]<-jackknife(y,var.ML)$jack.bias #jackknife estimate of bias - ML var
+jackknife.var.OLS<-vector(length=M) #a vector contains jackknife estimators
+jackknife.var.OLS[i]<-jackknife(y,var.OLS)$jack.bias #jackknife estimate of bias - OLS variance
+}
+#the average of the 1000 jackknife estimates of bias for ML variance
+jackknife.ML.bias<-mean(jackknife.var.ML) 
+#the average of the 1000 jackknife estimates of bias for OLS variance
+jackknife.OLS.bias<-mean(jackknife.var.OLS) 
+jackknife.ML.bias
+jackknife.OLS.bias
+
+```
+As can be seen from the result above, both Jackknife bias estimates from ML and OLS model is so small that can be seen as $0$. The true bias of ML model equals $\frac1 {10}$, and the true bias of OLS model equals $0$. Therefore, Jackknife estimate of bias is more consisten with true bias of the OLS model.
+
+
+Compute Jackknife bias estimates with each draw of size $n=100$:
+
+```{r}
+require(bootstrap)
+M<-1000
+for(i in 1:M) {
+set.seed(42) 
+y<-rnorm(100) #generate a sample of size n=100 from DGP
+var.ML<-function(x) {sum((x-mean(x))/length(x))} #sample variance of ML estimator
+var.OLS<-function(x) {sum(x-mean(x))/(length(x)-1)} #sample variance of OLS estimator 
+jackknife.var.ML<-vector(length=M) #a vector contains jackknife estimators
+jackknife.var.ML[i]<-jackknife(y,var.ML)$jack.bias #jackknife estimate of bias-ML variance
+jackknife.var.OLS<-vector(length=M) #a vector contains jackknife estimators
+jackknife.var.OLS[i]<-jackknife(y,var.OLS)$jack.bias #jackknife estimate of bias -OLS var
+}
+#the average of the 1000 jackknife estimates of bias for ML variance
+jackknife.ML.bias<-mean(jackknife.var.ML) 
+#the average of the 1000 jackknife estimates of bias for OLS variance
+jackknife.OLS.bias<-mean(jackknife.var.OLS) 
+jackknife.ML.bias
+jackknife.OLS.bias
+
+```
+
+As can be seen from the result above, both Jackknife bias estimates from ML and OLS model is so small that can be seen as $0$. The true bias of ML model equals $\frac1 {100}$, and the true bias of OLS model equals $0$. Therefore, again Jackknife estimate of bias is more consisten with true bias of the OLS model. And with the size of $n$ increases, the Jackknife estimate of bias will be more consistent with the true bias of the ML model.
+
+
+c. 
+Jackknife bias correction can be dangerous in practice. Even if $\bar \theta$ is less biased than $\hat \theta$, it may have substantially greater standard error. The exact use of a bias estimate is often problematic. Biases are harder to estimate than standard errors, so the user is warned that straightforward bias corrections can be dangerous to use in practice and should be used with extreme caution. If the bias is small relative to the estimated standard error, then it is safer to use $\hat \theta$ than $\bar \theta$. As stressed by Efron (1984), "The jackknife estimate of bias is not recommended for statistics other than functional form".
+
+
+
+
+
+
+
+
+
+
+
+
+##Question 4
+
+a. 
+i.
+\begin{align*}
+E(A)=a P(a)+(1-a) P(1-a)=  -\frac{\sqrt{5}-1}{2} \frac{\sqrt{5} + 1}{2\sqrt{5}} + \frac{\sqrt{5}+1}{2} \frac{\sqrt{5} - 1}{2\sqrt{5}} = 0
+\end{align*}
+
+ii.
+\begin{equation*}
+E(A^2)=P(a)(a-E(A))^2+(1-P(a))(1-a-E(A))^2= 1
+\end{equation*}
+
+iii.
+\begin{align*}
+E(A^3)=P(a)(a-E(A))^3+(1-P(a))(1-a-E(A))^3=
+P(a)a^3+(1-P(a))(1-a)^3=\frac{\sqrt{5}-3}{2\sqrt{5}}+\frac{3+\sqrt{5}}{2\sqrt{5}}=1
+\end{align*}
+
+b. 
+i.
+\begin{align*}
+E(\hat\epsilon_i^{\ast})=E(A\hat\epsilon_i)=E(A)E(\hat\epsilon_i)=0=E(\hat\epsilon_i)
+\end{align*}
+
+ii.
+\begin{align*}
+E(\hat\epsilon_i^{*2}) =E(A^2\hat\epsilon_i^2)=E(A^2)E(\hat\epsilon_i^2)=E(\hat\epsilon_i^2)
+\end{align*}
+
+iii.
+\begin{align*}
+E(\hat\epsilon_i^{*3}) =E(A^3\hat\epsilon_i^3)=E(A^3)E(\hat\epsilon_i^3)=E(\hat\epsilon_i^3)
+\end{align*}
+
+
+
+
+##Question 5
+
+
+##Summary of "Computer Intensive Methods in Statistics"
+
+
+The article discusses the development of theoretical statistics relating to the computer and focuses on one of the new statistical methods - the bootstrap. Invented by Bradley Efron in 1977, bootstrap is a simple and widely used method to resample data with replacement from one certain available sample without worrying about the complexity of the estimators.
+
+The authors introduce the bootstrap method through a simple example (with data from 15 American law schools in 1973), which measures the correlation coefficient "r" between LSAT (a national test for prospective law students) and the average undergraduate GPA. They first calculate the estimated "r" from the sample, denotes $r_s$; then, they construct a sequence of fake data sets using only the data from the original 15 law schools (the sample), by repeating each of the 15 data one billion times and mixing the 15 billion data together; then drawing 1000 samples of size 15 from the mixture. The resulting 1000 bootstrap correlation coefficients are plotted with statistics of central interval, standard error, etc. Finally, the authors compare the results from the bootstrap and the sample/true population and conclude the accuracy of bootstrap is quite high.
+
+Then the author discussed about the major shortcomings of classical statistical theory. One is that parametric methods rely on assumptions which might not be well justified, this will cause inefficiency. Another is that classical statistical theory limit the focus on simple analysis such as correlation.
+
+Four more examples of application of the bootstrap are demonstrated. One is about measuring the accuracy of principal components method of weighting 88 students' scores. Each student's five scores are repeated many times and mixed. A new sample of size 88 is drawn and the principal components are calculated. This bootstrap resampling is repeated many times. The variability of the bootstrap principal components reflects the sampling variability of the actual principal components. Another example is non-numerical, which map PH level of acid rain in America. The variability among the bootstrap maps is presented and provides striking information about the inaccuracy of the original map. The next example shows how to use bootstrap to understand the variability in the most widely used curve fitting algorithm - least squares through the RDFOR model. The last example illustrates the bootstrap used in a real problem involving 155 patients. The original analysis resulted in a fitted curve that predicts the chance of death as a function of measured variables. Through bootstrap the entire data analysis, the variability of the bootstrap values gives a direct estimate of the accuracy of the original estimates and suggests a better estimate for the misclassification. The bootstrap at this level offers possibility to build the connection between the mathematical theory underlying statistics and actual statistical practice.
+
+To prove how well the bootstrap works, the author again use all the 82 law schools' data to compute the actual distribution of the values (by choosing random samples of size 15 from the 82 schools with $82^{15}$ ways) and then compare the results with the bootstrap one. It is worth noticing that the bootstrap result is quite a good approximation to the actual distribution of "r".
+
+At the end, the authors briefly introduce some other alternative computer-based methods, which include jackknife, cross-validation and balanced repeated replication. The computer is not subject to the limitations of mathematical simplicity, thus the computer based methods urge the evolution of new statistical theories.The bootstrap, as one of these new theories provides efficient options and has meaningful implications for statistical research.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##Question 6
+
+
+##Executive Summary of The Dependent Wild Bootstrap
+
+
+The article by Shao (2010) provides a new resampling procedure, the dependent wild bootstrap (DWB), for stationary time series setting. The author first describes the DWB and its connection to various block-based methods in the context of variance estimation for the sample mean. Then, the author states the consistency of the DWB in distribution
+approximation for the regularly spaced time series under the framework of a smooth function model. Then, the author further presents asymptotic bias and variance expansions for the DWB variance estimator for irregularly spaced time series on a lattice. Furthermore, the author establishes the consistency of the DWB for both variance estimation and distribution approximation in the mean case for time series taken at randomly sampled time points. Lastly, the author provides results from simulation studies and an empirical data analysis. The major advantage of DWB is that it is convenient to implement for irregularly spaced data.
+
+
+
+**comparision between the naive Bootstrap, the Wild Bootstrap and the Dependent Wild Bootstrap:**
+
+
+Efron's iid bootstrap (naive bootstrap) is the most fundamental bootstrap method.This method is a distribution free or nonparametric approach towards generating standard errors, a confidence interval, or a test statistic.
+
+The Wild bootstrap, proposed originally by Wu (1986) accommodates the more realistic assumption that errors are independent but not identically distributed, which suited when the model exhibits heteroskedasticity. It resamples the response variable based on the values of residuals. That is to say for each replicate, one computes a new $y$ based on $y_{i}^*= x_{i}\hat\beta+\hat\epsilon_{i}^*$, here $\epsilon_{i}^*$ is generated via a two-point distribution$\epsilon_i^{\ast} = [(1-\sqrt{5} )/2] \hat \epsilon_i$ with probability $(1 + \sqrt{5})/[2\sqrt{5}]$ and $\epsilon_i^{\ast} = [(1+\sqrt{5} )/2] \hat \epsilon_i$ with probability $(\sqrt{5}-1)/[2\sqrt{5}]$.For each observation $\epsilon_{i}^*$ takes only two possible values, but across all N observations there are $2^n$ possible resamples if the $n$ values of $\epsilon_{i}^*$ are distinct.
+
+Both naive Bootstrap and Wild Bootstrap ignore dependence in the underlying processes.
+
+The Dependent Wild Bootstrap extends the traditional wild bootstrap (Wu 1986) to the time series setting by allowing the auxiliary variables involved in the wild bootstrap to be dependent, so it is capable of mimicking the dependence in the original series.The Dependent Wild Bootstrap generates new random bootstrap observations by introducing correlated error terms.
+
